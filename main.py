@@ -174,3 +174,15 @@ def recomendar_hibrido(usuario_id: int, producto_id: int, cantidad: int = 5, alp
 def reentrenar():
     entrenar_modelos()
     return {"message": " Modelos reentrenados con éxito"}
+
+
+
+# ==========================================
+# 🚀 Punto de entrada para Railway
+# ==========================================
+if __name__ == "__main__":
+    import uvicorn
+    import os
+
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
