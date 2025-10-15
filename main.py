@@ -7,7 +7,7 @@ import numpy as np
 
 app = FastAPI(title="Microservicio de Recomendaciones (Item, User, Hybrid + Info)")
 
-# 🔗 Conexión a tu base de datos
+#  Conexión a tu base de datos
 DB_URL = "postgresql://postgres:1234@localhost:5432/db_ecommerce"
 engine = create_engine(DB_URL)
 
@@ -19,8 +19,8 @@ productos_ids = []
 usuarios_ids = []
 productos_info = None  # para nombre, precio, imagen
 
+# ENTRENAMIENTO GENERAL hhh
 
-# 🚀 ENTRENAMIENTO GENERAL
 def entrenar_modelos():
     global matriz_usuario_producto, modelo_item, modelo_usuario, productos_ids, usuarios_ids, productos_info
 
@@ -32,7 +32,7 @@ def entrenar_modelos():
     """
     df = pd.read_sql(query, engine)
     if df.empty:
-        print("⚠️ Sin datos suficientes para entrenar.")
+        print(" Sin datos suficientes para entrenar.")
         return
 
     # Matriz usuario-producto
@@ -53,13 +53,13 @@ def entrenar_modelos():
         FROM product;
     """, engine)
 
-    print(f"✅ Modelos entrenados con {len(productos_ids)} productos y {len(usuarios_ids)} usuarios.")
+    print(f"Modelos entrenados con {len(productos_ids)} productos y {len(usuarios_ids)} usuarios.")
 
 
 entrenar_modelos()
 
 
-# 🧩 Función auxiliar para obtener info de productos
+# Función auxiliar para obtener info de productos
 def info_productos(ids):
     if productos_info is None or len(ids) == 0:
         return []
@@ -169,8 +169,8 @@ def recomendar_hibrido(usuario_id: int, producto_id: int, cantidad: int = 5, alp
     }
 
 
-# 🔁 Reentrenar manualmente
+#  Reentrenar manualmente
 @app.get("/recomendaciones/reentrenar")
 def reentrenar():
     entrenar_modelos()
-    return {"message": "✅ Modelos reentrenados con éxito"}
+    return {"message": " Modelos reentrenados con éxito"}
