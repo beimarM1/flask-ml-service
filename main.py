@@ -8,7 +8,7 @@ import numpy as np
 app = FastAPI(title="Microservicio de Recomendaciones (Item, User, Hybrid + Info)")
 
 #  Conexión a tu base de datos
-DB_URL = "postgresql://postgres:1234@localhost:5432/db_ecommerce"
+DB_URL = "postgresql://postgres:iYaaZjYAzIyFaIoPfojWEjyvsYoVZQGX@mainline.proxy.rlwy.net:42287/Ecommerce_BD"
 engine = create_engine(DB_URL)
 
 # Variables globales
