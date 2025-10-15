@@ -1,6 +1,7 @@
 fastapi
 uvicorn
-pandas
-scikit-learn
 sqlalchemy
-psycopg2
+pandas
+numpy
+scikit-learn
+psycopg2-binary
