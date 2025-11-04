@@ -3,11 +3,31 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+from fastapi.middleware.cors import CORSMiddleware  # 🔥 importa el middleware CORS
+
 import numpy as np
 
 app = FastAPI(title="Microservicio de Recomendaciones (Item, User, Hybrid + Info)")
+# ==================================================
+# 🌍 Habilitar CORS
+# ==================================================
+origins = [
+    "https://backend-ecommerce-production-0ef1.up.railway.app",   
+    "https://shopealo-ecomerce.netlify.app/",      
+    "*"                      
+]
 
-#  Conexión a tu base de datos
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # dominios permitidos
+    allow_credentials=True,
+    allow_methods=["*"],         # permite GET, POST, PUT, DELETE, etc.
+    allow_headers=["*"],         # permite cualquier encabezado
+)
+
+# ==================================================
+# 🔗 Conexión a base de datos y lógica
+# ==================================================
 DB_URL = "postgresql://postgres:iYaaZjYAzIyFaIoPfojWEjyvsYoVZQGX@mainline.proxy.rlwy.net:42287/Ecommerce_BD"
 engine = create_engine(DB_URL)
 
