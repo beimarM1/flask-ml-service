@@ -197,6 +197,110 @@ def reentrenar():
 
 
 
+# =========================
+# PREDICCIÓN DE STOCK
+# =========================
+@app.get("/stock-predictions")
+def obtener_predicciones_stock():
+    """
+    Predice cuándo se agotará el stock de cada producto
+    basándose en el histórico de ventas de los últimos 30 días.
+    """
+    from datetime import datetime, timedelta
+    
+    print("📊 Analizando predicciones de stock...")
+    
+    # Fecha de hace 30 días
+    fecha_inicio = datetime.now() - timedelta(days=30)
+    
+    # Query para obtener ventas de los últimos 30 días con información del producto
+    query = f"""
+    SELECT 
+        p.id AS producto_id,
+        p.name AS producto_nombre,
+        p.stock AS stock_actual,
+        p."stock_minimo" AS stock_minimo,
+        p.price AS precio,
+        p."urlImage" AS imagen,
+        COUNT(op.id) AS total_ordenes,
+        SUM(op.quantity) AS total_vendido
+    FROM product AS p
+    LEFT JOIN order_product AS op ON p.id = op."productId"
+    LEFT JOIN "order" AS o ON op."orderId" = o.id
+    WHERE o."createdAt" >= '{fecha_inicio.strftime("%Y-%m-%d")}'
+    GROUP BY p.id, p.name, p.stock, p."stock_minimo", p.price, p."urlImage"
+    HAVING p.stock IS NOT NULL AND p.stock > 0
+    ORDER BY p.stock ASC;
+    """
+    
+    df = pd.read_sql(query, engine)
+    
+    if df.empty:
+        return {
+            "message": "No hay suficientes datos para generar predicciones",
+            "predictions": []
+        }
+    
+    predicciones = []
+    
+    for _, row in df.iterrows():
+        producto_id = int(row['producto_id'])
+        producto_nombre = row['producto_nombre']
+        stock_actual = float(row['stock_actual']) if row['stock_actual'] else 0
+        stock_minimo = float(row['stock_minimo']) if row['stock_minimo'] else 15
+        total_vendido = float(row['total_vendido']) if row['total_vendido'] and pd.notna(row['total_vendido']) else 0
+        
+        # Calcular ventas diarias promedio
+        ventas_diarias_promedio = total_vendido / 30 if total_vendido > 0 else 0
+        
+        # Predecir días hasta agotamiento
+        if ventas_diarias_promedio > 0:
+            dias_hasta_agotamiento = stock_actual / ventas_diarias_promedio
+        else:
+            dias_hasta_agotamiento = 999  # Sin ventas recientes
+        
+        # Determinar nivel de alerta
+        if dias_hasta_agotamiento <= 3 or stock_actual <= stock_minimo:
+            alert_level = "critical"
+        elif dias_hasta_agotamiento <= 7:
+            alert_level = "warning"
+        else:
+            alert_level = "normal"
+        
+        # Calcular cantidad sugerida de compra (para 30 días)
+        cantidad_sugerida = max(int(ventas_diarias_promedio * 30), int(stock_minimo))
+        
+        # Solo incluir productos con alertas o con ventas recientes
+        if alert_level in ["critical", "warning"] or total_vendido > 0:
+            predicciones.append({
+                "productId": producto_id,
+                "productName": producto_nombre,
+                "currentStock": stock_actual,
+                "stockMinimo": stock_minimo,
+                "dailySalesAverage": round(ventas_diarias_promedio, 2),
+                "totalSoldLast30Days": total_vendido,
+                "daysUntilStockout": round(dias_hasta_agotamiento, 1),
+                "alertLevel": alert_level,
+                "suggestedPurchaseQuantity": cantidad_sugerida,
+                "price": float(row['precio']) if row['precio'] else 0,
+                "image": row['imagen'] if row['imagen'] else ""
+            })
+    
+    # Ordenar por criticidad (crítico primero)
+    orden_alerta = {"critical": 0, "warning": 1, "normal": 2}
+    predicciones.sort(key=lambda x: (orden_alerta[x["alertLevel"]], x["daysUntilStockout"]))
+    
+    print(f"✅ Generadas {len(predicciones)} predicciones de stock")
+    
+    return {
+        "message": "Predicciones generadas exitosamente",
+        "totalProducts": len(predicciones),
+        "criticalAlerts": len([p for p in predicciones if p["alertLevel"] == "critical"]),
+        "warningAlerts": len([p for p in predicciones if p["alertLevel"] == "warning"]),
+        "predictions": predicciones
+    }
+
+
 # ==========================================
 # 🚀 Punto de entrada para Railway
 # ==========================================
