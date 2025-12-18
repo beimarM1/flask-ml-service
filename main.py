@@ -28,7 +28,7 @@ app.add_middleware(
 # ==================================================
 # 🔗 Conexión a base de datos y lógica
 # ==================================================
-DB_URL = "postgresql://postgres:iYaaZjYAzIyFaIoPfojWEjyvsYoVZQGX@mainline.proxy.rlwy.net:42287/Ecommerce_BD"
+DB_URL="postgresql://postgres:ZSfvJIURxqyHJOcSPgBZrjciAlevyqVi@tramway.proxy.rlwy.net:36634/railway"
 engine = create_engine(DB_URL)
 
 # Variables globales
@@ -44,7 +44,7 @@ productos_info = None  # para nombre, precio, imagen
 def entrenar_modelos():
     global matriz_usuario_producto, modelo_item, modelo_usuario, productos_ids, usuarios_ids, productos_info
 
-    print("📡 Cargando datos de la base de datos...")
+    print("📡 Cargando datos de la base de datos... - main.py:47")
     query = """
     SELECT o."usuarioId" AS usuario_id, op."productId" AS producto_id
     FROM "order" AS o
@@ -52,7 +52,7 @@ def entrenar_modelos():
     """
     df = pd.read_sql(query, engine)
     if df.empty:
-        print(" Sin datos suficientes para entrenar.")
+        print("Sin datos suficientes para entrenar. - main.py:55")
         return
 
     # Matriz usuario-producto
